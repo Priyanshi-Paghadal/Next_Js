@@ -1,0 +1,4 @@
+Generator : - A generator function is a special type of function that can pause its execution at any point and resume later
+They are defined using the function* syntax and use the yield keyword to pause execution and return a value
+
+Lazy Evaluation: Values are computed only when needed, improving performance for large or infinite sequences.

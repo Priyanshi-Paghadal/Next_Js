@@ -1,0 +1,67 @@
+server and database , api , backend 
+api key jwt(ketla part ma devided ??)
+
+Server : - A server is a computer or a program that provides services or resources to other computers, called clients, over a network.
+
+The server is like a waiter who brings you food (services or data).
+The client is you, making a request (ordering food).
+
+Servers often interact with databases to fetch or save data and send it to the client.
+
+database : -A database is an organized collection of information (data) that is stored electronically so it can be easily accessed, managed, and updated.
+
+Your phone's contact list is like a small database. It stores names, phone numbers, and other details in an organized way.
+
+Databases rely on servers to communicate with clients and process queries.
+
+server :- Handles requests, processes data, and sends responses (e.g., hosting websites, running applications).
+
+database :- Stores, organizes, and manages data for easy access and retrieval.
+
+A server is like a waiter in a restaurant who takes your order, fetches the food, and serves it to you.
+A database is like the kitchen where the food (data) is prepared and stored.
+
+Backend :- The backend refers to the part of a software application that operates behind the scenes. It is responsible for the logic, database interactions, and server operations that enable the app to function properly.
+
+When you browse products or place an order, the backend handles tasks like fetching product details, processing your order, and updating the database.
+
+If the app is like a restaurant:
+The frontend is the menu and the dining area (what customers see and interact with).
+The backend is the kitchen, where the orders are processed and the food is prepared.
+
+API :- An API (Application Programming Interface) is a set of rules and tools that allows two software applications to communicate with each other. It acts as a middleman, enabling different systems to exchange data or perform tasks without knowing the details of each other's implementation.
+
+You (the client) tell the waiter (API) your order.
+The waiter communicates with the kitchen (backend/server) to prepare your food (data).
+The waiter brings the food (response) back to you.
+
+Weather App: Uses an API to fetch weather data from a weather service.
+Login with Google/Facebook: These use APIs to authenticate users.
+Online Shopping: Payment gateways (like PayPal or Stripe) use APIs to process transactions.
+
+API key : -
+An API key is a unique identifier used to authenticate a client (user, app, or system) making requests to an API. It ensures that only authorized clients can access the API and its resources.
+
+Authentication: Verifies that the client is allowed to use the API.
+Usage Tracking: Tracks how often the API is being used and by whom.
+Access Control: Limits access to specific features or data based on the client.
+Security: Protects APIs from unauthorized access or abuse
+
+Part of API Key : -
+
+ Client/Project Identifier:
+Identifies the user, application, or project making the request.
+Ensures the API provider knows who is using their service.
+Example: "12345-ABCDE"
+
+ Secret Key:
+A random, unique string used for authentication.
+Verifies the client is authorized to access the API.
+Acts like a password for the API.
+Example: "xyz789_secureKey"
+
+Metadata/Scope Information (Optional):
+Includes additional information such as:
+Permissions or scopes: Defines what the API key can access (e.g., read-only, write).
+Rate limits: Specifies how many requests the key can make.
+Example: "scope=read-write&rate_limit=1000"
