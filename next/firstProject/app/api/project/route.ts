@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
 import { createProject, getProject } from "@/app/services/projectService";
 import { NewProjectInterface } from "@/app/model/projectModel";
+import { Types } from "mongoose";
 
 export const POST = async (req: Request) => {
   try {
@@ -9,10 +10,7 @@ export const POST = async (req: Request) => {
     const { name, userId, status, user, deadline }: NewProjectInterface =
       await req.json();
 
-    if (!name) throw new Error("name required");
-    if (!userId) throw new Error("userId required");
-    if (!user) throw new Error("users are required");
-    if (!deadline) throw new Error("deadline required");
+    validateInputs(name, userId, user, deadline);
 
     const project = await createProject({
       name,
@@ -20,7 +18,7 @@ export const POST = async (req: Request) => {
       updatedBy: userId,
       status,
       user,
-      deadline
+      deadline,
     });
 
     return NextResponse.json({ msg: "Project added successfully", project });
@@ -49,3 +47,15 @@ export const GET = async () => {
     );
   }
 };
+
+function validateInputs(
+  name: string,
+  userId: Types.ObjectId,
+  user: unknown,
+  deadline: string | undefined
+) {
+  if (!name) throw new Error("name required");
+  if (!userId) throw new Error("userId required");
+  if (!user) throw new Error("users are required");
+  if (!deadline) throw new Error("deadline required");
+}

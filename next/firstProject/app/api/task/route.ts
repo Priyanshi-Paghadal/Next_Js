@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
 import { createTask, getTask } from "@/app/services/taskService";
 import { NewTaskInterFace } from "@/app/model/taskModel";
+import { Types } from "mongoose";
 
 export const POST = async (req: Request): Promise<Response> => {
   try {
@@ -13,14 +14,9 @@ export const POST = async (req: Request): Promise<Response> => {
       users,
       dueDate,
       userId,
-    }: NewTaskInterFace= await req.json();
+    }: NewTaskInterFace = await req.json();
 
-    if (!projectId) throw new Error("Name is required");
-    if (!name) throw new Error("Name is required");
-    if (!priority) throw new Error("priority is required");
-    if (!users) throw new Error("users are required");
-    if (!dueDate) throw new Error("dueDate is required");
-    if (!userId) throw new Error("userId is required");
+    validateInputs(projectId, name, priority, users, dueDate, userId);
 
     const task = await createTask({
       projectId,
@@ -59,3 +55,19 @@ export const GET = async () => {
     );
   }
 };
+
+function validateInputs(
+  projectId: Types.ObjectId,
+  name: string,
+  priority: string,
+  users: Types.ObjectId[],
+  dueDate: Date,
+  userId: Types.ObjectId
+) {
+  if (!projectId) throw new Error("Name is required");
+  if (!name) throw new Error("Name is required");
+  if (!priority) throw new Error("priority is required");
+  if (!users) throw new Error("users are required");
+  if (!dueDate) throw new Error("dueDate is required");
+  if (!userId) throw new Error("userId is required");
+}
