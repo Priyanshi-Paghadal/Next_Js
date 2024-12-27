@@ -1,20 +1,20 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
 
 export interface NewTaskInterFace extends Document {
-  prtId:mongoose.Types.ObjectId;
+  projectId:mongoose.Types.ObjectId;
   name: string;
   priority: "High" | "Medium" | "Low";
-  assigned:mongoose.Types.ObjectId[];
+  users:mongoose.Types.ObjectId[];
   dueDate:Date;
   completed: boolean;
   archive: boolean;
-  createdBy: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
   updatedBy?: mongoose.Types.ObjectId;
 }
 
 const taskSchema = new Schema(
   {
-    prtId: {
+    projectId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
       required: true,
@@ -24,22 +24,22 @@ const taskSchema = new Schema(
       type: String,
       enum: ["High", "Medium", "Low"],
     },
-    assigned: [
+    users: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Assuming 'User' is the name of your user model
+        ref: "users", // Assuming 'User' is the name of your user model
         required:true
       },
     ],
     dueDate: { type: Date, required: true },
     completed: { type: Boolean, default: false },
     archive: { type: Boolean, default: false },
-    createdBy: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "users",
       required: true,
     },
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "users" },
   },
   {
     timestamps: true, // Automatically includes `createdAt` and `updatedAt`

@@ -1,37 +1,36 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
 import { createTask, getTask } from "@/app/services/taskService";
+import { NewTaskInterFace } from "@/app/model/taskModel";
 
-export const POST = async (req: Request) => {
+export const POST = async (req: Request): Promise<Response> => {
   try {
     connectDB();
-    const { prtId, name, priority, assigned, dueDate, createdBy } =
-      await req.json();
-    console.log(":::::Req body", {
-      prtId,
+    const {
+      projectId,
       name,
       priority,
-      assigned,
+      users,
       dueDate,
-      createdBy,
-    });
+      userId,
+    }: NewTaskInterFace= await req.json();
 
-    if (!name || !priority || !assigned || !dueDate || !createdBy) {
-      return NextResponse.json(
-        {
-          error:
-            "Name, priority,assigned,dueDate, and createdBy ,are required fields.",
-        },
-        { status: 400 }
-      );
-    }
+    if (!projectId) throw new Error("Name is required");
+    if (!name) throw new Error("Name is required");
+    if (!priority) throw new Error("priority is required");
+    if (!users) throw new Error("users are required");
+    if (!dueDate) throw new Error("dueDate is required");
+    if (!userId) throw new Error("userId is required");
+
     const task = await createTask({
-      prtId,
+      projectId,
       name,
       priority,
-      assigned,
+      users,
       dueDate,
-      createdBy,
+      completed: false, // Default value
+      archive: false, // Default value
+      userId,
     });
 
     return NextResponse.json({ msg: "Task added successfully", task });
@@ -55,7 +54,7 @@ export const GET = async () => {
   } catch (error) {
     console.error("Task not found ", error);
     return NextResponse.json(
-      { message: "Error retrieving tasks", error: error.message },
+      { message: "Error retrieving tasks", error: error },
       { status: 500 }
     );
   }

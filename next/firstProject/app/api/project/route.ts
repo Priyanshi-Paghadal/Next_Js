@@ -1,33 +1,39 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
-import { createProject , getProject } from "@/app/services/projectService";
+import { createProject, getProject } from "@/app/services/projectService";
+import { NewProjectInterface } from "@/app/model/projectModel";
 
 export const POST = async (req: Request) => {
   try {
     await connectDB();
-    const { name, createdBy, updatedBy, status, mbr, deadline } =
+    const { name, userId, status, user, deadline }: NewProjectInterface =
       await req.json();
+
+    if (!name) throw new Error("name required");
+    if (!userId) throw new Error("userId required");
+    if (!user) throw new Error("users are required");
+    if (!deadline) throw new Error("deadline required");
 
     const project = await createProject({
       name,
-      createdBy,
-      updatedBy: createdBy,
+      userId,
+      updatedBy: userId,
       status,
-      mbr,
-      deadline,
+      user,
+      deadline
     });
 
     return NextResponse.json({ msg: "Project added successfully", project });
   } catch (error) {
     console.log("Project Not added ", error);
     return NextResponse.json(
-      { msg: "Error adding project", error: error.message },
+      { msg: "Error adding project", error: error },
       { status: 500 }
     );
   }
 };
 
-export const GET = async (req: Request) => {
+export const GET = async () => {
   try {
     await connectDB();
     const projects = await getProject();
@@ -38,7 +44,7 @@ export const GET = async (req: Request) => {
   } catch (error) {
     console.log("Project Not Found ", error);
     return NextResponse.json(
-      { msg: "Error geting project", error: error.message },
+      { msg: "Error geting project", error },
       { status: 500 }
     );
   }

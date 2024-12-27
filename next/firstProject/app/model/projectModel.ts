@@ -1,33 +1,31 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
-
 export interface NewProjectInterface extends Document {
   name: string;
-  createdBy: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
   updatedBy?: mongoose.Types.ObjectId;
-  status: "ongoing" | "Pending" | "completed";
-  mbr: Mbr[];
+  status: "ongoing" | "Pending" | "completed"; 
+  user: user[];
   createdAt: string;
   updatedAt?: string;
   deadline?: string;
 }
 
-interface Mbr {
+interface user {
   userId: string;
-  role: "admin" | "owner" | "user";
+  role: "admin" | "owner" | "user"; // interface for user
 }
 
 const projectSchema: Schema<NewProjectInterface> = new Schema(
   {
     name: { type: String, required: true },
-    createdBy: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "users",
       required: true,
     },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+      ref: "users",
     },
     status: {
       type: String,
@@ -35,7 +33,7 @@ const projectSchema: Schema<NewProjectInterface> = new Schema(
       default: "Pending",
       required: true,
     },
-    mbr: [
+    user: [
       {
         userId: { type: String, required: true },
         role: {

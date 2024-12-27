@@ -1,23 +1,24 @@
 import bcrypt from "bcrypt";
 import User, { NewUserInterface } from "../model/userModel";
 
-export const createUser = async (userData: NewUserInterface) => {
+export const createUser = async (userData: {
+  name: string;
+  email: string;
+  norEmail: string;
+  password: string;
+  mobile: number;
+  gender: string;
+  birthDate: Date;
+  age?: number;
+}) => {
   try {
     if (!/^\d{10}$/.test(userData.mobile.toString())) {
-      throw new Error("Mobile number must be exactly 10 digits.");
+      throw new Error("Mobile number must be exactly 10 digits."); // validate mobile number
     }
-    userData.password = await bcrypt.hash(userData.password, 10);
-    if (userData.birthDate) {
-      // Calculate the current year
-      const currentYear = new Date().getFullYear();
-      // Extract the year from the birthDate
-      const birthYear = new Date(userData.birthDate).getFullYear();
-      // Calculate age
-      userData.age = currentYear - birthYear;
-    }
+    userData.password = await bcrypt.hash(userData.password, 10); //hash password
     const user = new User(userData);
-    await user.save();
-    return user;
+    await user.save(); // save user to database
+    return user; //return the newly created user
   } catch (error) {
     throw new Error(`Error creating user: ${error}`);
   }
@@ -25,7 +26,7 @@ export const createUser = async (userData: NewUserInterface) => {
 
 export const getUser = async (): Promise<NewUserInterface[]> => {
   try {
-    const users = await User.find();
+    const users = await User.find(); //get data
     return users;
   } catch (error) {
     throw new Error(`Error creating user: ${error}`);
@@ -38,11 +39,11 @@ export const updateUser = async (
 ): Promise<NewUserInterface | null> => {
   try {
     if (!id) {
-      throw new Error("User ID is required for updating.");
+      throw new Error("User ID is required for updating."); //validate id
     }
 
     if (updatedData.password) {
-      updatedData.password = await bcrypt.hash(updatedData.password, 10);
+      updatedData.password = await bcrypt.hash(updatedData.password, 10); // hash password
     }
 
     const updatedUser = await User.findOneAndUpdate(

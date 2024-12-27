@@ -2,9 +2,17 @@ import Task from "../model/taskModel";
 import { NewTaskInterFace } from "../model/taskModel";
 import mongoose from "mongoose";
 
-export const createTask = async (
-  taskData: NewTaskInterFace
-): Promise<NewTaskInterFace | null> => {
+export const createTask = async (taskData: {
+  projectId: mongoose.Types.ObjectId;
+  name: string;
+  priority: "High" | "Medium" | "Low";
+  users: mongoose.Types.ObjectId[];
+  dueDate: Date;
+  completed: boolean;
+  archive: boolean;
+  userId: mongoose.Types.ObjectId;
+  updatedBy?: mongoose.Types.ObjectId;
+}) => {
   try {
     // Create a new task using the Task model
     const newTask = await Task.create(taskData);
@@ -16,9 +24,7 @@ export const createTask = async (
 
 export const getTask = async (): Promise<NewTaskInterFace[]> => {
   try {
-    const allTasks = await Task.find({})
-      // .populate("assigned") // Populate the 'assigned' field with the associated User data
-      // .exec();
+    const allTasks = await Task.find({});
     console.log("Fetched tasks:", allTasks); // Debug log
     return allTasks;
   } catch (error) {
@@ -29,10 +35,10 @@ export const getTask = async (): Promise<NewTaskInterFace[]> => {
 export const updateTask = async (
   id: string,
   updatedData: {
-    prtId:mongoose.Types.ObjectId;
+    projectId: mongoose.Types.ObjectId;
     name?: string;
     priority?: "High" | "Medium" | "Low";
-    assigned?: mongoose.Types.ObjectId[]; // Array of ObjectIds for 'assigned'
+    users?: mongoose.Types.ObjectId[]; // Array of ObjectIds for 'users'
     dueDate?: Date;
     updatedBy?: mongoose.Types.ObjectId;
   }

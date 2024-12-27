@@ -1,43 +1,30 @@
 import connectDB from "@/app/lib/connectDb";
-import { updateTask} from "@/app/services/taskService";
+import { updateTask } from "@/app/services/taskService";
+import { NextResponse } from "next/server";
 
-export const PUT = async (req: Request, { params }: { params: { id: string } }) => {
+export const PUT = async (
+  req: Request,
+  { params }: { params: { id: string } }
+) => {
   try {
-    // const { id, updatedData } = await req.json(); // Parse request body
 
     const { id } = params; // Get user ID from URL params (dynamic route)
     const { updatedData } = await req.json(); // Parse the body for updated data
 
-    if (!id || !updatedData) {
-      return new Response(
-        JSON.stringify({ message: "ID and updated data are required" }),
-        { status: 400 }
-      );
-    }
+    if (!id) throw new Error("Id required");
+    if (!updatedData) throw new Error("updated data are required");
 
     await connectDB(); // Ensure database connection
 
     const updatedTask = await updateTask(id, updatedData); // Pass parameters correctly
 
     if (!updatedTask) {
-      return new Response(
-        JSON.stringify({ message: "User not found" }),
-        { status: 404 }
-      );
+      throw new Error("Task not found");
     }
 
-    return new Response(
-      JSON.stringify({
-        message: "Task updated successfully",
-        user: updatedTask,
-      }),
-      { status: 200 }
-    );
+    return NextResponse.json({msg:"Task updated successfully",updatedTask},{status:200})
   } catch (error) {
     console.error("Error updating task:", error);
-    return new Response(
-      JSON.stringify({ message: "Internal server error", error: error }),
-      { status: 500 }
-    );
+    return NextResponse.json({msg:"Task not updated"},{status:500})
   }
 };
