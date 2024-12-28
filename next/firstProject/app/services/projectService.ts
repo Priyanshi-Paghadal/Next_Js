@@ -1,27 +1,50 @@
 import Project from "../model/projectModel";
-import { NewProjectInterface } from "../model/projectModel";
+import {
+  NewProjectInterface,
+  ProjectPayloadInterface,
+} from "../interface/projectInterface";
 import mongoose from "mongoose";
-interface user {
-  userId: string;
-  role: "admin" | "owner" | "user"; // interface for user
-}
+import { messages } from "../helper/messageHelper";
+import { validateProjects } from "../utils/validate";
+import { getUserDetails } from "./userService";
 
-export const createProject = async (projectData: {
-  name: string;
-  userId: mongoose.Types.ObjectId;
-  updatedBy?: mongoose.Types.ObjectId;
-  status: "ongoing" | "Pending" | "completed";
-  user: user[];
-  createdAt?: string;
-  updatedAt?: string;
-  deadline?: string;
-}) => {
+export const createProject = async (payload: ProjectPayloadInterface) => {
   try {
     // Create a new task using the Task model
-    const newProject = await Project.create(projectData);
-    console.log(newProject);
+    const { name, userId, status, users, deadline } = payload;
+    await validateProjects(payload);
+
+    const newProject = {
+      name,
+      status,
+      users,
+      deadline,
+      createdBy: userId,
+      updatedBy: userId,
+    };
+    const addedUserIds = new Set<string>();
+    for (const user of users) {
+      const isExistUser = await getUserDetails(user.userId);
+      if (!isExistUser) {
+        throw new Error(messages.user.notFound);
+      } else {
+        newProject.users.push(user); // Add valid user to the project payload
+        addedUserIds.add(user.userId);
+      }
+    }
+    const project = await Project.create(newProject);
+    console.log(project);
+    const populatedProject = await getProjectDetails(project._id);
+    return populatedProject;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProjectDetails = async (projectId: mongoose.Types.ObjectId) => {
+  try {
     const populatedProject = await Project.aggregate([
-      { $match: { _id: newProject._id } }, // Match newly created project
+      { $match: { _id: projectId } }, // Match newly created project
       // Lookup for creatorDetails (userId)
       {
         $lookup: {
@@ -66,7 +89,7 @@ export const createProject = async (projectData: {
 
     return populatedProject[0];
   } catch (error) {
-    throw new Error(`Error creating task: ${error}`);
+    throw error;
   }
 };
 
@@ -123,7 +146,8 @@ export const getProject = async () => {
 
     return projects;
   } catch (error) {
-    throw new Error(`Error getting task: ${error}`);
+    console.log(error);
+    throw error;
   }
 };
 
@@ -134,7 +158,7 @@ export const updateProject = async (
 ): Promise<NewProjectInterface | null> => {
   try {
     if (!id) {
-      throw new Error("User ID is required for updating.");
+      throw new Error(messages.id.required);
     }
 
     const updatedProject = await Project.findOneAndUpdate(
@@ -198,6 +222,6 @@ export const updateProject = async (
     return populatedProject[0];
   } catch (error) {
     console.error("Error updating Project:", error);
-    throw new Error(`Error updating Project: ${error}`);
+    throw error;
   }
 };

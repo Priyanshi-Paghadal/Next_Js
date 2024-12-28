@@ -1,6 +1,7 @@
 import Task from "../model/taskModel";
-import { NewTaskInterFace } from "../model/taskModel";
+import { NewTaskInterFace } from "../interface/taskInterface";
 import mongoose from "mongoose";
+import { messages } from "../helper/messageHelper";
 
 export const createTask = async (taskData: {
   projectId: mongoose.Types.ObjectId;
@@ -10,7 +11,7 @@ export const createTask = async (taskData: {
   dueDate: Date;
   completed: boolean;
   archive: boolean;
-  userId: mongoose.Types.ObjectId;
+  createdBy: mongoose.Types.ObjectId;
   updatedBy?: mongoose.Types.ObjectId;
 }) => {
   try {
@@ -18,7 +19,8 @@ export const createTask = async (taskData: {
     const newTask = await Task.create(taskData);
     return newTask;
   } catch (error) {
-    throw new Error(`Error creating task: ${error}`);
+    console.log("Error creating task", error);
+    throw error;
   }
 };
 
@@ -28,7 +30,8 @@ export const getTask = async (): Promise<NewTaskInterFace[]> => {
     console.log("Fetched tasks:", allTasks); // Debug log
     return allTasks;
   } catch (error) {
-    throw new Error(`Error getting tasks: ${error}`);
+    console.log("Error getting tasks", error);
+    throw error;
   }
 };
 
@@ -45,7 +48,7 @@ export const updateTask = async (
 ): Promise<NewTaskInterFace | null> => {
   try {
     if (!id) {
-      throw new Error("Task ID is required for updating.");
+      throw new Error(messages.id.required);
     }
     const updatedTask = await Task.findOneAndUpdate(
       { _id: id }, // Match document by _id
@@ -55,6 +58,6 @@ export const updateTask = async (
     return updatedTask;
   } catch (error) {
     console.error("Error updating task:", error);
-    throw new Error(`Error updating task: ${error}`);
+    throw error;
   }
 };

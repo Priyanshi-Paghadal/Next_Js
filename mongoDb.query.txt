@@ -1,0 +1,83 @@
+find()-To select data from a collection in MongoDB, we can use the find() method.->cursor object
+
+findOne() - To select only one document, we can use the findOne() method.-> returns object
+
+find many --  is achieved using the find() method.
+
+insert -  If the collection does not exist, then the insert() method will create the collection.
+ 
+The insert() returns an object that contains the status of the operation.
+
+create -- Mongoose models have a create() function that is often used to create new documents.
+
+insertOne()-To insert a single document, use the insertOne() method. -> returns object
+
+insertMany()-To insert multiple documents at once, use the insertMany() method. -> return object
+
+save  -- save() function is used to persist data to a MongoDB database. It creates or updates a document in the database based on the provided schema
+
+update -- update() function is used to modify documents in MongoDB through Mongoose
+
+updateOne()-The updateOne() method will update the first document that is found matching the provided query.
+
+updateMany()-The updateMany() method will update all documents that match the provided query.
+
+delete -- In older versions, the delete() function was used
+
+deleteOne() - The deleteOne() method will delete the first document that matches the query provided.
+ 
+deleteMany()-The deleteMany() method will delete all documents that match the query provided.
+
+
+find and update - findOneAndUpdate() Updates a single document 
+
+upsert--  
+In MongoDB, upsert is a combination of update and insert operations. It means that if a document matching the query criteria is found, it will be updated. If no matching document is found, a new document will be inserted.
+Query: Criteria to match the document.
+Update: The fields to update.
+Upsert Option: A flag ({ upsert: true }) to indicate the operation should insert the document if no match is found.
+
+
+aggrigation
+Aggregation operations allow you to group, sort, perform calculations, analyze data, and much more.
+$group - This aggregation stage groups documents by the unique _id expression provided.
+$limit - This aggregation stage limits the number of documents passed to the next stage.
+$project-This aggregation stage passes only the specified fields along to the next aggregation stage.
+$sort-This aggregation stage groups sorts all documents in the specified sort order.
+$match-This aggregation stage behaves like a find. It will filter documents that match the query provided.
+$addFields-This aggregation stage adds new fields to documents.
+$count-This aggregation stage counts the total amount of documents passed from the previous stage.
+ $lookup
+This aggregation stage performs a left outer join to a collection in the same database.
+
+There are four required fields:
+
+from: The collection to use for lookup in the same database
+localField: The field in the primary collection that can be used as a unique identifier in the from collection.
+foreignField: The field in the from collection that can be used as a unique identifier in the primary collection.
+as: The name of the new field that will contain the matching documents from the from collection.
+$out
+This aggregation stage writes the returned documents from the aggregation pipeline to a collection.
+
+
+query parameters
+
+
+
+
+
+
+
+
+
+MongoDB Query Operators
+
+Comparison
+
+$eq: Values are equal
+$ne: Values are not equal
+$gt: Value is greater than another value
+$gte: Value is greater than or equal to another value
+$lt: Value is less than another value
+$lte: Value is less than or equal to another value
+$in: Value is matched within an array

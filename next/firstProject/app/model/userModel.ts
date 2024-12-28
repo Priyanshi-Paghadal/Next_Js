@@ -1,17 +1,5 @@
-import mongoose, { Document, Schema, Model } from "mongoose";
-
-export interface NewUserInterface extends Document {
-  name: string;
-  email: string;
-  norEmail: string;
-  password: string;
-  mobile: number; // Optional mobile number
-  gender: "Male" | "Female" | "Other"; // Enum type for gender
-  birthDate: Date; // Optional birthdate
-  age?: number; // Optional age
-  createdAt: Date;
-  updatedAt: Date;
-}
+import mongoose, { Schema, Model } from "mongoose";
+import { NewUserInterface } from "../interface/userInterface";
 
 const userSchema: Schema<NewUserInterface> = new Schema(
   {
@@ -20,7 +8,10 @@ const userSchema: Schema<NewUserInterface> = new Schema(
       type: String,
       required: true,
       set: (value: string) => value.toLowerCase(), // convert to lowercase
-      match: [/^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/, "Please provide a valid email address"], // Email format validation
+      match: [
+        /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/,
+        "Please provide a valid email address",
+      ], // Email format validation
     },
     norEmail: {
       type: String,
@@ -47,8 +38,8 @@ const userSchema: Schema<NewUserInterface> = new Schema(
 
 userSchema.pre<NewUserInterface>("validate", function (next) {
   // Compare email and norEmail after applying transformations
-  if (this.email !== this.norEmail.toLowerCase()) {
-    return next(new Error("Email and normalize email must be the same."));
+  if (this.email) {
+    this.norEmail = this.email.toLowerCase() 
   }
   next();
 }); //validate email

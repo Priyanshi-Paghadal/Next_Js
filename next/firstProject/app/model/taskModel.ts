@@ -1,16 +1,5 @@
-import mongoose, { Document, Schema, Model } from "mongoose";
-
-export interface NewTaskInterFace extends Document {
-  projectId:mongoose.Types.ObjectId;
-  name: string;
-  priority: "High" | "Medium" | "Low";
-  users:mongoose.Types.ObjectId[];
-  dueDate:Date;
-  completed: boolean;
-  archive: boolean;
-  userId: mongoose.Types.ObjectId;
-  updatedBy?: mongoose.Types.ObjectId;
-}
+import mongoose, { Schema, Model } from "mongoose";
+import { NewTaskInterFace } from "../interface/taskInterface";
 
 const taskSchema = new Schema(
   {
@@ -28,13 +17,13 @@ const taskSchema = new Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "users", // Assuming 'User' is the name of your user model
-        required:true
+        required: true,
       },
     ],
     dueDate: { type: Date, required: true },
     completed: { type: Boolean, default: false },
     archive: { type: Boolean, default: false },
-    userId: {
+    createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
       required: true,

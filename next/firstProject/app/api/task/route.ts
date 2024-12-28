@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
 import { createTask, getTask } from "@/app/services/taskService";
-import { NewTaskInterFace } from "@/app/model/taskModel";
-import { Types } from "mongoose";
+import { NewTaskInterFace } from "@/app/interface/taskInterface";
+import { validateTasks } from "@/app/utils/validate";
+import { messages } from "@/app/helper/messageHelper";
 
 export const POST = async (req: Request): Promise<Response> => {
   try {
     connectDB();
+
+    const payload = await req.json();
+    console.log("Payload received:", payload); // Debug log
     const {
       projectId,
       name,
       priority,
       users,
       dueDate,
-      userId,
-    }: NewTaskInterFace = await req.json();
+      createdBy,
+    }: NewTaskInterFace = payload;
 
-    validateInputs(projectId, name, priority, users, dueDate, userId);
-
-    const task = await createTask({
+    const taskDetails = {
       projectId,
       name,
       priority,
@@ -26,16 +28,17 @@ export const POST = async (req: Request): Promise<Response> => {
       dueDate,
       completed: false, // Default value
       archive: false, // Default value
-      userId,
-    });
+      createdBy,
+    };
 
-    return NextResponse.json({ msg: "Task added successfully", task });
+    validateTasks(taskDetails);
+
+    const task = await createTask(taskDetails);
+
+    return NextResponse.json({ msg: messages.task.created, task });
   } catch (error) {
     console.log("Task not added", error);
-    return NextResponse.json(
-      { error: "Task not added", details: error },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Task not added" }, { status: 500 });
   }
 };
 
@@ -44,7 +47,7 @@ export const GET = async () => {
     await connectDB(); // Ensure database connection
     const tasks = await getTask(); // Fetch tasks
     return NextResponse.json({
-      message: "All tasks retrieved successfully",
+      message: messages.task.retrived,
       tasks,
     });
   } catch (error) {
@@ -55,19 +58,3 @@ export const GET = async () => {
     );
   }
 };
-
-function validateInputs(
-  projectId: Types.ObjectId,
-  name: string,
-  priority: string,
-  users: Types.ObjectId[],
-  dueDate: Date,
-  userId: Types.ObjectId
-) {
-  if (!projectId) throw new Error("Name is required");
-  if (!name) throw new Error("Name is required");
-  if (!priority) throw new Error("priority is required");
-  if (!users) throw new Error("users are required");
-  if (!dueDate) throw new Error("dueDate is required");
-  if (!userId) throw new Error("userId is required");
-}

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import connectDB from "@/app/lib/connectDb";
-
 import { updateProject } from "@/app/services/projectService";
 import { NextResponse } from "next/server";
+import { validate } from "@/app/utils/validate";
+import { messages } from "@/app/helper/messageHelper";
 
 export const PUT = async (
   req: Request,
@@ -11,19 +13,40 @@ export const PUT = async (
     await connectDB(); // Ensure database connection
 
     const { id } = params; // Get user ID from URL params (dynamic route)
-    const { updatedData } = await req.json(); // Parse the body for updated data
 
-    if (!id) throw new Error("Id required");
-    if (!updatedData) throw new Error("updated data are required");
+    const body = await req.json();
+    const { name, status, updatedBy, user, deadline, userId } = body;
+    console.log(":::::Body :- ", body);
+
+    const role =
+      user.find((u: { userId: any }) => u.userId === updatedBy)?.role ||
+      "unknown";
+
+    console.log("::::: role", role);
+
+    if (role !== "admin" && role !== "owner") {
+      throw new Error(messages.project.unAuth);
+    }
+
+    const updatedData = {
+      name,
+      status,
+      updatedBy,
+      user,
+      deadline,
+      userId,
+    };
+
+    validate(id, updatedData);
 
     const updatedProject = await updateProject(id, updatedData); // Pass parameters correctly
 
     if (!updatedProject) {
-      throw new Error("Project not found");
+      throw new Error(messages.project.notFound);
     }
 
     return NextResponse.json(
-      { msg: "Project updated successfully", updatedProject },
+      { msg: messages.project.updated, updatedProject },
       { status: 200 }
     );
   } catch (error) {
