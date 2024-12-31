@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import connectDB from "@/app/lib/connectDb";
 import { updateProject } from "@/app/services/projectService";
 import { NextResponse } from "next/server";
@@ -7,7 +6,7 @@ import { messages } from "@/app/helper/messageHelper";
 
 export const PUT = async (
   req: Request,
-  { params }: { params: { id: string }; res: Response }
+  { params }: { params: { id: string } }
 ) => {
   try {
     await connectDB(); // Ensure database connection
@@ -15,31 +14,34 @@ export const PUT = async (
     const { id } = params; // Get user ID from URL params (dynamic route)
 
     const body = await req.json();
-    const { name, status, updatedBy, user, deadline, userId } = body;
+    const { name, status, users, deadline, userId } = body || {};
     console.log(":::::Body :- ", body);
 
-    const role =
-      user.find((u: { userId: any }) => u.userId === updatedBy)?.role ||
-      "unknown";
+    // const currentProject = await getProjectById(id);
+    // if (!currentProject) {
+    //   throw new Error(messages.project.notFound);
+    // }
 
-    console.log("::::: role", role);
+    // const isOwner = currentProject.createdBy.toString() === userId;
+    // if (!isOwner) {
+    //   return NextResponse.json(
+    //     { msg: "Only the owner of the project can update it." },
+    //     { status: 403 } // Forbidden status
+    //   );
+    // }
 
-    if (role !== "admin" && role !== "owner") {
-      throw new Error(messages.project.unAuth);
-    }
-
-    const updatedData = {
+    const updateDetail = {
       name,
       status,
-      updatedBy,
-      user,
+      users,
       deadline,
       userId,
     };
 
-    validate(id, updatedData);
+    validate(id, updateDetail);
 
-    const updatedProject = await updateProject(id, updatedData); // Pass parameters correctly
+    // Update the project
+    const updatedProject = await updateProject(id, updateDetail, userId);
 
     if (!updatedProject) {
       throw new Error(messages.project.notFound);

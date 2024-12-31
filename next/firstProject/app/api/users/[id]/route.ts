@@ -9,12 +9,13 @@ export const PUT = async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    await connectDB(); // Ensure database connection
     const { id } = params; // Get user ID from URL params (dynamic route)
-    const { updatedData } = await req.json(); // Parse the body for updated data
+    const { name, email, password, mobile, gender, birthDate } =
+      await req.json(); // Parse the body for updated data
+    const updatedData = { name, email, password, mobile, gender, birthDate };
 
     validate(id, updatedData);
-
-    await connectDB(); // Ensure database connection
 
     const updatedUser = await updateUser(id, updatedData); // Pass parameters correctly
 
@@ -28,6 +29,6 @@ export const PUT = async (
     );
   } catch (error) {
     console.error("Error updating user:", error);
-    return NextResponse.json({ msg: "User not updated" }, { status: 500 });
+    return NextResponse.json(error, { status: 500 });
   }
 };

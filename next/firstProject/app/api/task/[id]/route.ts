@@ -9,12 +9,14 @@ export const PUT = async (
   { params }: { params: { id: string } }
 ) => {
   try {
+    await connectDB(); // Ensure database connection
     const { id } = params; // Get user ID from URL params (dynamic route)
-    const { updatedData } = await req.json(); // Parse the body for updated data
+    const { projectId, name, priority, users, dueDate, updatedBy , completed, archive  } = await req.json(); // Parse the body for updated data
+
+    const updatedData = {projectId, name, priority, users, dueDate, updatedBy , completed, archive}
 
     validate(id, updatedData);
 
-    await connectDB(); // Ensure database connection
 
     const updatedTask = await updateTask(id, updatedData); // Pass parameters correctly
 

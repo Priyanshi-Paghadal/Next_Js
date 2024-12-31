@@ -1,0 +1,153 @@
+$match - Filters documents based on a specified query predicate. Matched documents are passed to the next pipeline stage.
+
+$sort- Sorts all input documents and returns them to the pipeline in sorted order.
+
+$unwind - Deconstructs an array field from the input documents to output a document for each element. Each output document is the input document with the value of the array field replaced by the element.
+ If a document has an array, $unwind takes each item in the array and creates a separate document for it.
+
+$project - The $project stage in MongoDB's aggregation framework is used to include, exclude, or reshape fields in the output documents. It allows you to control which fields to show, create new fields, or modify the structure of the documents.
+
+$group - The $group stage in MongoDB's aggregation framework is used to group documents by a specified field and perform calculations (like sum, average, count, etc.) for each group.
+
+$addFields - Adds new fields to documents. $addFields outputs documents that contain all existing fields from the input documents and newly added fields.
+
+$map - The $map operator in MongoDB is used to apply a transformation or operation on each element of an array. It returns a new array where each element is modified based on the operation you specify.
+
+$ifNull - The $ifNull operator in MongoDB is used to check if a value is null or missing. If it is, you can replace it with a default value of your choice. It helps ensure that a field always has a value, even when the original value is absent or null.
+
+$cond - The $cond operator in MongoDB is used to implement a conditional statement (like an "if-else" statement). It checks a condition, and depending on whether the condition is true or false, it returns one value or another.
+
+$or - The $or operator in MongoDB is used to perform a logical "OR" operation. It allows you to specify multiple conditions, and the query will return documents that match any of the conditions.
+
+$and - The $and operator in MongoDB is used to perform a logical "AND" operation. It allows you to specify multiple conditions, and the query will return documents that match all of the specified conditions.
+
+$sum - The $sum operator in MongoDB is used to calculate the sum of values. It can be used in different ways depending on the context, such as summing values in a field or counting the number of documents or array elements.
+
+$count - The $count operator in MongoDB is used in the aggregation framework to count the number of documents that pass through the pipeline. It returns a single document with a count of the number of documents that matched the pipeline conditions.
+
+$min - The $min operator in MongoDB is used to find the minimum value for a specified field within a group of documents. It is often used in the aggregation pipeline to return the smallest value from a group or collection of documents.
+
+$max - The $max operator in MongoDB is used to find the maximum value for a specified field within a group of documents. It is commonly used in the aggregation pipeline to return the largest value from a group or collection of documents.
+
+$lookup - $lookup helps you merge documents from different collections based on a shared field, allowing you to retrieve related data in a single query.
+
+$expr - The $expr operator in MongoDB is used to allow expressions in query conditions. It enables you to perform comparisons and arithmetic operations between fields within the same document or use other operators that support expressions, within the query.
+
+$eq - The $eq operator in MongoDB is used to check if a field is equal to a specified value. It is commonly used in queries to filter documents where a field matches a specific value.
+
+$ne - The $ne operator in MongoDB is used to filter documents where a field does not equal a specified value. It stands for "not equal" and is the opposite of the $eq operator.
+
+$exists - The $exists operator in MongoDB is used to check whether a field exists in the documents of a collection or not. It helps in filtering documents based on the presence or absence of a specific field.
+
+$push - The $push operator in MongoDB is used to add an element to an array field in a document. If the array field does not already exist, it will be created. It is commonly used in update operations to append data to an array.
+
+$addToSet - The $addToSet operator in MongoDB is used to add a value to an array only if it does not already exist in that array. It helps in avoiding duplicate values when adding elements to an array field.
+
+$gt - The $gt operator in MongoDB is used to query documents where the value of a field is greater than a specified value. It is commonly used for numeric comparisons.
+
+$gte - The $gte operator in MongoDB is used to query documents where the value of a field is greater than or equal to a specified value. It allows you to perform greater-than-or-equal comparisons.
+
+$in - The $in operator in MongoDB is used to query documents where the value of a field matches any of the values in a specified array. It’s useful when you want to check if a field’s value is one of several options.
+
+$lt - The $lt operator in MongoDB is used to query documents where the value of a field is less than a specified value. It is commonly used for numeric comparisons or comparisons with other data types like dates or strings.
+
+$lte - The $lte operator in MongoDB is used to query documents where the value of a field is less than or equal to a specified value. It is a comparison operator that helps filter documents based on this condition.
+
+$math - 
+$add: Adds two or more numbers.
+$subtract: Subtracts one number from another.
+$multiply: Multiplies two or more numbers.
+$divide: Divides one number by another.
+$mod: Calculates the remainder of a division.
+$sqrt: Computes the square root of a number.
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+$arrayElemAt - The $arrayElemAt operator in MongoDB is used to return an element from an array at a specified index. It is typically used in aggregation pipelines to retrieve a specific value from an array field in a document.
+
+$filter - The $filter operator in MongoDB is used to filter elements in an array based on a specified condition or expression. It allows you to create a new array containing only the elements that satisfy a certain condition.
+
+$bucket - The $bucket operator in MongoDB is used to group documents into buckets based on a specified range of values. This is typically used in aggregation pipelines to categorize or segment data into ranges,
+
+ $bucketAuto - The $bucketAuto operator in MongoDB is similar to the $bucket operator, but it automatically divides documents into a specified number of buckets (ranges) based on the values of a given field. Unlike $bucket, where you define the boundaries explicitly, $bucketAuto automatically calculates the boundaries to evenly distribute the documents into the specified number of buckets.
+
+$changeStream - The $changeStream operator in MongoDB is part of the Change Streams feature. It allows you to listen for real-time changes to documents in a collection or an entire database. This operator provides a way to track changes like inserts, updates, deletes, and other operations that occur in MongoDB collections, without the need to repeatedly query the database.
+
+$set - Adds new fields to documents. $set outputs documents that contain all existing fields from the input documents and newly added fields.
+
+$skip - takes a positive integer that specifies the maximum number of documents to skip.
+
+$sortByCount - operator in MongoDB is an aggregation pipeline stage that groups documents by a specified expression and then sorts the results based on the count of each group. It is essentially a combination of the $group stage (to count occurrences) and the $sort stage (to sort the results by the count).
+
+$unset - Removes/excludes fields from documents.
+
+$unionWith - operator in MongoDB is used to combine the results of two collections into a single stream of documents. It allows you to merge the results from the current aggregation pipeline with those from a second collection. This operator is particularly useful when you need to combine data from multiple collections into one unified output
+
+$abs - The $abs operator in MongoDB is used to return the absolute value of a number. The absolute value of a number is its distance from zero, without considering its sign. This means it will always return a non-negative number, whether the input is positive or negative..
+
+$accumulator - The $accumulator operator in MongoDB is a powerful and flexible tool that allows you to define custom aggregation functions. You can use it to accumulate values using your own logic, making it useful when built-in aggregation operators are not sufficient for your needs. Whether you're summing values, collecting unique items, or performing complex calculations, $accumulator enables highly customizable aggregation operations.
+
+$allElementsTrue - Evaluates an array as a set and returns true if no element in the array is false. Otherwise, returns false. An empty array returns true.
+
+$anyElementTrue - Evaluates an array as a set and returns true if any of the elements are true and false otherwise. An empty array returns false.
+
+$arrayToObject - Converts an array into a single document; the array must be either:
+
+$avg - Returns the average value of the numeric values
+
+$binarySize - Returns the size of a given string or binary data value's content in bytes
+
+$zip - The $zip operator combines multiple arrays by "zipping" them together, pairing elements from the same index position in each array into subarrays.
+
+$year - Returns the year portion of a date.
+
+$week - The $week operator in MongoDB is used to extract the week number of a given date in an aggregation pipeline. It returns a number representing the week of the year (from 1 to 52 or 53) based on the provided date. This can be useful when you want to group or filter data by weeks.
+
+$unsetField - You can use $unsetField to remove fields with names that contain periods (.) or that start with dollar signs ($).
+
+$type - The $type operator is used to query or project fields based on their BSON data types. It can help you filter documents that have a field with a specific type or even return the type of a field in aggregation. This operator is useful for working with documents where the type of a field may vary and you want to ensure specific types or filter out certain types.
+
+$trunc -  truncates a number to a whole integer or to a specified decimal place.
+
+$trim - Removes whitespace characters, including null, or the specified characters from the beginning and end of a string.
+
+$tsSecond - Returns the seconds from a timestamp as a long.
+
+$toUpper - Converts a string to uppercase, returning the result.
+
+$toLower - Converts a string to lowercase, returning the result.
+
+$toString - Converts a value to a string. If the value cannot be converted to a string, $toString errors. If the value is null or missing, $toString returns null.
+
+$top - Returns the top element within a group according to the specified sort order.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
-import { createUser, getUser } from "@/app/services/userService";
-import { NewUserInterface } from "@/app/interface/userInterface";
-import { validateUsers } from "@/app/utils/validate";
+import { createUser, getUsers } from "@/app/services/userService";
+import { UserPayLoadInterface } from "@/app/interface/userInterface";
 import { messages } from "@/app/helper/messageHelper";
 
 export const POST = async (req: Request): Promise<Response> => {
@@ -16,7 +15,7 @@ export const POST = async (req: Request): Promise<Response> => {
       mobile,
       gender,
       birthDate,
-    }: NewUserInterface = await req.json();
+    }: UserPayLoadInterface = await req.json();
 
     const userDetails = {
       name,
@@ -26,7 +25,6 @@ export const POST = async (req: Request): Promise<Response> => {
       gender,
       birthDate,
     };
-    validateUsers(userDetails);
 
     const user = await createUser(userDetails); // create user
 
@@ -40,7 +38,7 @@ export const POST = async (req: Request): Promise<Response> => {
 export const GET = async () => {
   try {
     connectDB();
-    const users = await getUser(); // Fetch all users
+    const users = await getUsers(); // Fetch all users
     return NextResponse.json({ msg: "All users", users });
   } catch (error) {
     console.log(messages.user.notFound, error);

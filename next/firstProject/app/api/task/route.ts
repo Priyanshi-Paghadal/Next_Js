@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
-import { createTask, getTask } from "@/app/services/taskService";
-import { NewTaskInterFace } from "@/app/interface/taskInterface";
-import { validateTasks } from "@/app/utils/validate";
+import { createTask, getTasks } from "@/app/services/taskService";
+import { TaskPayloadInterface } from "@/app/interface/taskInterface";
 import { messages } from "@/app/helper/messageHelper";
 
 export const POST = async (req: Request): Promise<Response> => {
   try {
     connectDB();
 
-    const payload = await req.json();
-    console.log("Payload received:", payload); // Debug log
     const {
       projectId,
       name,
@@ -18,7 +15,7 @@ export const POST = async (req: Request): Promise<Response> => {
       users,
       dueDate,
       createdBy,
-    }: NewTaskInterFace = payload;
+    }: TaskPayloadInterface = await req.json();
 
     const taskDetails = {
       projectId,
@@ -26,12 +23,8 @@ export const POST = async (req: Request): Promise<Response> => {
       priority,
       users,
       dueDate,
-      completed: false, // Default value
-      archive: false, // Default value
       createdBy,
     };
-
-    validateTasks(taskDetails);
 
     const task = await createTask(taskDetails);
 
@@ -45,7 +38,7 @@ export const POST = async (req: Request): Promise<Response> => {
 export const GET = async () => {
   try {
     await connectDB(); // Ensure database connection
-    const tasks = await getTask(); // Fetch tasks
+    const tasks = await getTasks(); // Fetch tasks
     return NextResponse.json({
       message: messages.task.retrived,
       tasks,

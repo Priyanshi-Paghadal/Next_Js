@@ -35,6 +35,26 @@ const taskSchema = new Schema(
   }
 );
 
+// taskSchema.pre("save", function (next) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   const task = this as any; // Explicitly cast `this` to the task document type
+//   if (task.users && Array.isArray(task.users)) {
+//     task.users = [...new Set(task.users.map((userId: mongoose.Types.ObjectId) => userId.toString()))];
+//   }
+//   next();
+// });
+
+taskSchema.path("users").validate(function (users: mongoose.Types.ObjectId[]) {
+  const userIdsSet = new Set<string>();
+  for (const userId of users) {
+    if (userIdsSet.has(userId.toString())) {
+      return false; // Duplicate userId found
+    }
+    userIdsSet.add(userId.toString());
+  }
+  return true; // No duplicates found
+}, "Duplicate userId found in users array");
+
 const Task: Model<NewTaskInterFace> =
   mongoose.models.Task || mongoose.model<NewTaskInterFace>("Task", taskSchema);
 

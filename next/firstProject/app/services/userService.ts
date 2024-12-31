@@ -1,19 +1,25 @@
-import bcrypt from "bcrypt";
 import User from "../model/userModel";
-import { NewUserInterface } from "../interface/userInterface";
+import {
+  NewUserInterface,
+  UserPayLoadInterface,
+} from "../interface/userInterface";
 import { messages } from "../helper/messageHelper";
+import { validateUsers } from "../utils/validate";
 
-export const createUser = async (userData: {
-  name: string;
-  email: string;
-  password: string;
-  mobile: number;
-  gender: string;
-  birthDate: Date;
-}) => {
+export const createUser = async (payload: UserPayLoadInterface) => {
   try {
-    userData.password = await bcrypt.hash(userData.password, 10); //hash password
-    const user = new User(userData);
+    const { name, email, password, mobile, gender, birthDate } = payload;
+    validateUsers(payload);
+
+    const newUser = {
+      name,
+      email,
+      password,
+      mobile,
+      gender,
+      birthDate,
+    };
+    const user = new User(newUser);
     await user.save(); // save user to database
     return user; //return the newly created user
   } catch (error) {
@@ -22,7 +28,7 @@ export const createUser = async (userData: {
   }
 };
 
-export const getUser = async (): Promise<NewUserInterface[]> => {
+export const getUsers = async (): Promise<NewUserInterface[]> => {
   try {
     const users = await User.find(); //get data
     return users;
@@ -34,15 +40,18 @@ export const getUser = async (): Promise<NewUserInterface[]> => {
 
 export const updateUser = async (
   id: string,
-  updatedData: { name?: string; email?: string; password?: string }
+  updatedData: {
+    name?: string;
+    email?: string;
+    password?: string;
+    mobile?: string;
+    gender?: string;
+    birthDate?: string;
+  }
 ): Promise<NewUserInterface | null> => {
   try {
     if (!id) {
       throw new Error(messages.id.required); //validate id
-    }
-
-    if (updatedData.password) {
-      updatedData.password = await bcrypt.hash(updatedData.password, 10); // hash password
     }
 
     const updateResult = await User.updateOne(
@@ -63,10 +72,12 @@ export const updateUser = async (
   }
 };
 
-export const getUserDetails = async (userId:string ): Promise<NewUserInterface|null> => {
+export const getUserDetails = async (
+  userId: string
+): Promise<NewUserInterface | null> => {
   try {
-    const user = await User.findOne({_id:userId}); //get data
-    if(user)return user;
+    const user = await User.findOne({ _id: userId }); //get data
+    if (user) return user;
     else return null;
   } catch (error) {
     console.log(`Error getting user: ${error}`);

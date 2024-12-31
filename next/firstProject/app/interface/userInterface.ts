@@ -1,4 +1,5 @@
 export interface NewUserInterface extends Document {
+  isModified(arg0: string): unknown;
   name: string;
   email: string;
   norEmail: string;
@@ -9,4 +10,12 @@ export interface NewUserInterface extends Document {
   age: number; // Optional age
   createdAt: Date;
   updatedAt: Date;
+}
+export interface UserPayLoadInterface {
+  name: string;
+  email: string;
+  password: string;
+  mobile: number;
+  gender: string;
+  birthDate: Date;
 }

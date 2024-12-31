@@ -1,5 +1,6 @@
 import mongoose, { Schema, Model } from "mongoose";
 import { NewUserInterface } from "../interface/userInterface";
+import bcrypt from "bcrypt";
 
 const userSchema: Schema<NewUserInterface> = new Schema(
   {
@@ -15,7 +16,6 @@ const userSchema: Schema<NewUserInterface> = new Schema(
     },
     norEmail: {
       type: String,
-      required: true,
       set: (value: string) => value.toUpperCase(), // convert to uppercase
     },
     password: { type: String, required: true },
@@ -36,10 +36,27 @@ const userSchema: Schema<NewUserInterface> = new Schema(
   }
 );
 
+userSchema.pre<NewUserInterface>("save", async function (next) {
+  if (this.isModified("password")) { // Only hash if the password has been modified
+    const saltRounds = 10; // You can adjust the salt rounds if needed
+    try {
+      const hashedPassword = await bcrypt.hash(this.password, saltRounds);
+      this.password = hashedPassword; // Set the hashed password
+      next(); // Proceed with the save
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err:any) {
+      next(err); // Pass any errors to the next middleware
+    }
+  } else {
+    next(); // If password is not modified, just proceed with the save
+  }
+});
+
+
 userSchema.pre<NewUserInterface>("validate", function (next) {
   // Compare email and norEmail after applying transformations
   if (this.email) {
-    this.norEmail = this.email.toLowerCase() 
+    this.norEmail = this.email.toUpperCase() 
   }
   next();
 }); //validate email

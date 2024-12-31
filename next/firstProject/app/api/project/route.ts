@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/app/lib/connectDb";
-import { createProject, getProject } from "@/app/services/projectService";
+import { createProject, getProjects } from "@/app/services/projectService";
 import {
   ProjectPayloadInterface,
 } from "@/app/interface/projectInterface";
@@ -33,9 +33,9 @@ export const POST = async (req: Request) => {
 export const GET = async () => {
   try {
     await connectDB();
-    const projects = await getProject();
+    const projects = await getProjects();
     return NextResponse.json({
-      msg: messages.project.created,
+      msg: messages.project.retrived,
       projects,
     });
   } catch (error) {
