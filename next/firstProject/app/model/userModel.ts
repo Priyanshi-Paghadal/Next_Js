@@ -20,21 +20,27 @@ const userSchema: Schema<NewUserInterface> = new Schema(
     },
     password: { type: String, required: true },
     mobile: {
-      type: Number,
+      type: Number, // Changed to string to support larger numbers and leading zeros
       required: true,
       validate: {
-        validator: (value: number) => /^\d{10}$/.test(value.toString()), // validate mobile number
+        validator: (value: string) => /^\d{10}$/.test(value), // validate mobile number
         message: "Mobile number must be exactly 10 digits.",
       },
-    }, // Fixed bigint to Number
+    },
     gender: { type: String, enum: ["Male", "Female", "Other"] }, // Enum for gender
-    birthDate: { type: Date }, // Added Date type for birthdate
-    age: { type: Number }, // Added Number type for age
+    birthDate: { type: Date },
+    // profilePic: {
+    //   filename: { type: String, required: true },
+    //   path: { type: String, required: true },
+    //   size: { type: Number, required: true },
+    // },
+    age: { type: Number }, // Age calculation logic will be handled in pre-save hook
   },
   {
     timestamps: true, // Automatically includes `createdAt` and `updatedAt`
   }
 );
+
 
 userSchema.pre<NewUserInterface>("save", async function (next) {
   if (this.isModified("password")) { // Only hash if the password has been modified

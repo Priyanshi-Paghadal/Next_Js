@@ -25,3 +25,9 @@ interface user {
   userId: string;
   role: "admin" | "owner" | "user"; // interface for user
 }
+
+export const userRole = {
+  admin: "admin",
+  user: "user",
+  owner:"owner"
+}

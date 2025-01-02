@@ -1,0 +1,30 @@
+Socket.IO is a popular library used for real-time, bidirectional communication between clients and servers. It is particularly useful for applications that require real-time updates, such as chat applications, live notifications, or collaborative tools.
+
+Socket.IO Middleware
+Middleware functions can be used to handle events before they reach the main logic. This is useful for things like authentication, logging, etc.
+
+io.use((socket, next) => {
+  if (socket.handshake.query.token === 'valid-token') {
+    next();
+  } else {
+    next(new Error('Authentication error'));
+  }
+});
+
+Rooms
+Room Concept: Rooms allow you to group sockets together. A socket can join or leave a room. This is useful for creating chat rooms, game lobbies, or private channels.
+
+// Server-side: Joining a room
+socket.join('room1');
+
+// Server-side: Emitting to a specific room
+io.to('room1').emit('message', 'Hello room 1!');
+
+// Client-side: Joining a room
+socket.emit('joinRoom', 'room1');
+
+Socket.IO allows you to send a callback function as an argument to emit events, creating two-way communication.
+
+socket.emit('event', data, (response) => {
+  console.log(response); // Handling the server's response
+});

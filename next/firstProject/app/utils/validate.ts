@@ -16,7 +16,7 @@ export function validate(id: string, updatedData: any) {
 
 export function validateUsers(payload: UserPayLoadInterface) {
   try {
-    const { name, email, password, mobile, gender, birthDate } = payload;
+    const { name, email, password, mobile, gender, birthDate ,profilePic} = payload;
 
     if (!name) throw new Error("Name is required");
     if (!email) throw new Error("Email is required");
@@ -24,6 +24,7 @@ export function validateUsers(payload: UserPayLoadInterface) {
     if (!mobile) throw new Error("Mobile is required");
     if (!gender) throw new Error("Gender is required");
     if (!birthDate) throw new Error("Birthdate is required");
+    if (!profilePic) throw new Error("ProfilePic is required");
   } catch (error) {
     throw error;
   }

@@ -6,6 +6,7 @@ import {
 import mongoose from "mongoose";
 import { messages } from "../helper/messageHelper";
 import { validateTasks } from "../utils/validate";
+import Project from "../model/projectModel";
 
 export const createTask = async (payload: TaskPayloadInterface) => {
   try {
@@ -55,6 +56,10 @@ export const getTaskDetails = async (taskId: mongoose.Types.ObjectId) => {
           userDetails: { $addToSet: "$userDetails" }, // Deduplicate user details
           creatorDetails: { $first: "$creatorDetails" },
           updatedDetails: { $first: "$updatedDetails" },
+          completed: { $first: "$completed" },
+          archive: { $first: "$archive" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
         },
       },
       {
@@ -63,6 +68,8 @@ export const getTaskDetails = async (taskId: mongoose.Types.ObjectId) => {
           projectId: 1,
           name: 1,
           priority: 1,
+          completed: 1,
+          archive: 1,
           dueDate: 1,
           userDetails: {
             _id: 1,
@@ -79,6 +86,8 @@ export const getTaskDetails = async (taskId: mongoose.Types.ObjectId) => {
             name: 1,
             email: 1,
           },
+          createdAt: 1,
+          updatedAt: 1,
         },
       },
     ]);
@@ -91,6 +100,7 @@ export const getTaskDetails = async (taskId: mongoose.Types.ObjectId) => {
 
 export const getTasks = async (): Promise<NewTaskInterFace[]> => {
   try {
+    console.time("getTask:::");
     const allTasks = await Task.aggregate([
       {
         $lookup: {
@@ -140,6 +150,10 @@ export const getTasks = async (): Promise<NewTaskInterFace[]> => {
           userDetails: { $first: "$userDetails" }, // Keep array of users
           creatorDetails: { $first: "$creatorDetails" }, // Keep creator details
           updatedDetails: { $first: "$updatedDetails" }, // Keep updatedBy details
+          completed: { $first: "$completed" },
+          archive: { $first: "$archive" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
         },
       },
       {
@@ -149,6 +163,8 @@ export const getTasks = async (): Promise<NewTaskInterFace[]> => {
           name: 1,
           priority: 1,
           dueDate: 1,
+          completed: 1,
+          archive: 1,
           userDetails: {
             _id: 1,
             name: 1,
@@ -164,11 +180,13 @@ export const getTasks = async (): Promise<NewTaskInterFace[]> => {
             name: 1,
             email: 1,
           },
+          createdAt: 1,
+          updatedAt: 1,
         },
       },
     ]);
 
-    console.log("Fetched tasks:", allTasks); // Debug log
+    console.timeEnd("getTask:::");
     return allTasks;
   } catch (error) {
     console.log("Error getting tasks", error);
@@ -209,6 +227,209 @@ export const updateTask = async (
     return updatedTask; // Return the updated task document
   } catch (error) {
     console.error("Error updating task:", error);
+    throw error;
+  }
+};
+
+export const getProjectAndTaskDetails = async (projectId: string) => {
+  try {
+    const projectDetail = await Project.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(projectId), // Match the project by `projectId`
+        },
+      },
+      {
+        $lookup: {
+          from: "tasks", // Join the `tasks` collection
+          localField: "_id",
+          foreignField: "projectId",
+          as: "tasks",
+        },
+      },
+      {
+        $unwind: {
+          path: "$tasks",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // Join the `users` collection for task users
+          localField: "tasks.users",
+          foreignField: "_id",
+          as: "taskUsers",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: 1, // Add role information for task users
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // Join the `users` collection for task creator
+          localField: "tasks.createdBy",
+          foreignField: "_id",
+          as: "taskCreatorDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$taskCreatorDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // Join the `users` collection for task updater
+          localField: "tasks.updatedBy",
+          foreignField: "_id",
+          as: "taskUpdaterDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$taskUpdaterDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // Join the `users` collection for project creator
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "projectCreatedBy",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: "owner", // Add role information for project creator
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectCreatedBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users", // Join the `users` collection for project updater
+          localField: "updatedBy",
+          foreignField: "_id",
+          as: "updatorDetail",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: 1, // Add role information for project updater
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$updatorDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $set: {
+          "updatorDetail.role": {
+            $arrayElemAt: [
+              "$users.role",
+              {
+                $indexOfArray: ["$users.userId", "$updatedBy"],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $unwind: {
+          path: "$users",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "users.userId",
+          foreignField: "_id",
+          as: "projectUserDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectUserDetails",
+          preserveNullAndEmptyArrays: true,
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          status: { $first: "$status" },
+          createdBy: { $first: "$projectCreatedBy" },
+          updatedBy: { $first: "$updatorDetail" },
+          users: {
+            $addToSet: {
+              _id: "$projectUserDetails._id",
+              name: "$projectUserDetails.name",
+              email: "$projectUserDetails.email",
+              role: "$users.role",
+            },
+          },
+          tasks: {
+            $addToSet: {
+              _id: "$tasks._id",
+              name: "$tasks.name",
+              status: "$tasks.status",
+              users: "$taskUsers",
+              createdBy: {
+                _id: "$taskCreatorDetails._id",
+                name: "$taskCreatorDetails.name",
+                email: "$taskCreatorDetails.email",
+              },
+              updatedBy: {
+                _id: "$taskUpdaterDetails._id",
+                name: "$taskUpdaterDetails.name",
+                email: "$taskUpdaterDetails.email",
+              },
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          status: 1,
+          users: 1,
+          createdBy: 1,
+          updatedBy: 1,
+          tasks: 1,
+        },
+      },
+    ]);
+
+    return projectDetail[0]; // Return the first (and only) matched project with tasks
+  } catch (error) {
+    console.error("Error fetching project details:", error);
     throw error;
   }
 };

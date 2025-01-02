@@ -2,11 +2,13 @@ import Project from "../model/projectModel";
 import {
   NewProjectInterface,
   ProjectPayloadInterface,
+  userRole,
 } from "../interface/projectInterface";
 import mongoose from "mongoose";
 import { messages } from "../helper/messageHelper";
 import { validateProjects } from "../utils/validate";
 import { getUserDetails } from "./userService";
+import Task from "../model/taskModel";
 
 export const createProject = async (payload: ProjectPayloadInterface) => {
   try {
@@ -17,12 +19,12 @@ export const createProject = async (payload: ProjectPayloadInterface) => {
     // const addedUserIds = new Set<string>();
     const validUsers: {
       userId: string | undefined;
-      role: "admin" | "owner" | "user";
+      role: string;
     }[] = []; // Temporary array to store valid users
 
     const isCreatorAlreadyAdded = users.some((user) => user.userId === userId);
     const isOwnerAlreadyAdded = validUsers.some(
-      (user) => user.role === "owner"
+      (user) => user.role === userRole.owner
     );
 
     if (!isCreatorAlreadyAdded) {
@@ -34,10 +36,10 @@ export const createProject = async (payload: ProjectPayloadInterface) => {
         // throw new Error(messages.projectOwnerAlreadyExists);
       } else {
         // If the user is the first one to be added (the creator), assign them the "owner" role
-        validUsers.push({ userId, role: "owner" });
+        validUsers.push({ userId, role: userRole.owner });
       }
     } else {
-      validUsers.push({ userId, role: "owner" });
+      validUsers.push({ userId, role: userRole.owner });
     }
 
     for (const user of users) {
@@ -77,17 +79,25 @@ export const getProjects = async () => {
       {
         $lookup: {
           from: "users",
-          localField: "users.userId",
+          localField: "createdBy",
           foreignField: "_id",
-          as: "userDetails",
+          as: "projectCreatedBy",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: "owner",
+              },
+            },
+          ],
         },
       },
       {
-        $lookup: {
-          from: "users",
-          localField: "createdBy",
-          foreignField: "_id",
-          as: "creatorDetails",
+        $unwind: {
+          path: "$projectCreatedBy",
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -95,56 +105,72 @@ export const getProjects = async () => {
           from: "users",
           localField: "updatedBy",
           foreignField: "_id",
-          as: "updatedDetails",
+          as: "updatorDetail",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$updatorDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$users",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "users.userId",
+          foreignField: "_id",
+          as: "projectUserDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectUserDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          status: { $first: "$status" },
+          users: {
+            $push: {
+              id: "$projectUserDetails._id",
+              name: "$projectUserDetails.name",
+              email: "$projectUserDetails.email",
+              role: "$users.role",
+            },
+          },
+          createdBy: { $first: "$projectCreatedBy" },
+          updatedBy: { $first: "$updatorDetail" },
         },
       },
       {
         $project: {
           _id: 1,
           name: 1,
-          status: 1,
-          deadline: 1,
-          users: {
-            $map: {
-              input: "$users",
-              as: "projectUser",
-              in: {
-                userId: "$$projectUser.userId",
-                role: "$$projectUser.role",
-                name: {
-                  $arrayElemAt: [
-                    "$userDetails.name",
-                    {
-                      $indexOfArray: [
-                        "$userDetails._id",
-                        "$$projectUser.userId",
-                      ],
-                    },
-                  ],
-                },
-                email: {
-                  $arrayElemAt: [
-                    "$userDetails.email",
-                    {
-                      $indexOfArray: [
-                        "$userDetails._id",
-                        "$$projectUser.userId",
-                      ],
-                    },
-                  ],
-                },
-              },
-            },
-          },
-          "creatorDetails.name": 1,
-          "creatorDetails.email": 1,
-          "creatorDetails.role": "owner",
-          "updatedDetails.name": 1,
-          "updatedDetails.email": 1,
-          "updatedDetails.role": 1,
+          status: 1, // Renaming 'status' to 'Status'
+          users: 1,
+          createdBy: 1,
+          updatedBy: 1,
         },
       },
-    ]); // Use lean() for faster response and less overhead
+    ]);
 
     console.timeEnd("Time ::");
     return projects;
@@ -156,32 +182,67 @@ export const getProjects = async () => {
 
 export const getProjectDetails = async (projectId: mongoose.Types.ObjectId) => {
   try {
-    console.time("getData*****");
+    // console.log("projectId****", projectId, typeof projectId);
     const populatedProject = await Project.aggregate([
       { $match: { _id: projectId } }, // Match the project by ID
-
-      {
-        $lookup: {
-          from: "users",
-          localField: "users.userId",
-          foreignField: "_id",
-          as: "userDetails",
-        },
-      },
       {
         $lookup: {
           from: "users",
           localField: "createdBy",
           foreignField: "_id",
-          as: "creatorDetails",
+          as: "projectCreatorDetail",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: "owner",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectCreatorDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: "$users",
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
         $lookup: {
           from: "users",
-          localField: "updatedBy",
+          localField: "users.userId",
           foreignField: "_id",
-          as: "updatedDetails",
+          as: "projectUserDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectUserDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          status: { $first: "$status" },
+          projectCreatorDetail: { $first: "$projectCreatorDetail" }, // Use $first to avoid duplicates
+          users: {
+            $push: {
+              id: "$projectUserDetails._id",
+              name: "$projectUserDetails.name",
+              email: "$projectUserDetails.email",
+              role: "$users.role",
+            },
+          },
         },
       },
       {
@@ -189,49 +250,11 @@ export const getProjectDetails = async (projectId: mongoose.Types.ObjectId) => {
           _id: 1,
           name: 1,
           status: 1,
-          deadline: 1,
-          users: {
-            $map: {
-              input: "$users",
-              as: "projectUser",
-              in: {
-                userId: "$$projectUser.userId",
-                role: "$$projectUser.role",
-                name: {
-                  $arrayElemAt: [
-                    "$userDetails.name",
-                    {
-                      $indexOfArray: [
-                        "$userDetails._id",
-                        "$$projectUser.userId",
-                      ],
-                    },
-                  ],
-                },
-                email: {
-                  $arrayElemAt: [
-                    "$userDetails.email",
-                    {
-                      $indexOfArray: [
-                        "$userDetails._id",
-                        "$$projectUser.userId",
-                      ],
-                    },
-                  ],
-                },
-              },
-            },
-          },
-          "creatorDetails.name": 1,
-          "creatorDetails.email": 1,
-          "creatorDetails.role": "owner",
-          "updatedDetails.name": 1,
-          "updatedDetails.email": 1,
-          "updatedDetails.role": 1,
+          projectCreatorDetail: 1,
+          users: 1,
         },
       },
     ]);
-    console.timeEnd("getData*****");
 
     return populatedProject[0];
   } catch (error) {
@@ -245,7 +268,7 @@ export const updateProject = async (
   userId: mongoose.Types.ObjectId // User who is attempting to update the project
 ): Promise<NewProjectInterface | null> => {
   try {
-    console.time("12345");
+    console.time("UpdateProject::::");
     if (!id) {
       throw new Error(messages.id.required);
     }
@@ -299,20 +322,29 @@ export const updateProject = async (
 
     const populatedProject = await Project.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(id) } }, // Match the updated project by ID
-      {
-        $lookup: {
-          from: "users",
-          localField: "users.userId",
-          foreignField: "_id",
-          as: "userDetails",
-        },
-      },
+
       {
         $lookup: {
           from: "users",
           localField: "createdBy",
           foreignField: "_id",
-          as: "creatorDetails",
+          as: "projectCreatedBy",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: "owner",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectCreatedBy",
+          preserveNullAndEmptyArrays: true,
         },
       },
       {
@@ -320,7 +352,72 @@ export const updateProject = async (
           from: "users",
           localField: "updatedBy",
           foreignField: "_id",
-          as: "updatedDetails",
+          as: "updatorDetail",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$updatorDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $set: {
+          "updatorDetail.role": {
+            $arrayElemAt: [
+              "$users.role",
+              {
+                $indexOfArray: ["$users.userId", "$updatedBy"],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $unwind: {
+          path: "$users",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "users.userId",
+          foreignField: "_id",
+          as: "projectUserDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectUserDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          status: { $first: "$status" },
+          users: {
+            $push: {
+              id: "$projectUserDetails._id",
+              name: "$projectUserDetails.name",
+              email: "$projectUserDetails.email",
+              role: "$users.role",
+            },
+          },
+          createdBy: { $first: "$projectCreatedBy" },
+          updatedBy: { $first: "$updatorDetail" },
         },
       },
       {
@@ -328,53 +425,212 @@ export const updateProject = async (
           _id: 1,
           name: 1,
           status: 1,
-          deadline: 1,
-          users: {
-            $map: {
-              input: "$users",
-              as: "projectUser",
-              in: {
-                userId: "$$projectUser.userId",
-                role: "$$projectUser.role",
-                name: {
-                  $arrayElemAt: [
-                    "$userDetails.name",
-                    {
-                      $indexOfArray: [
-                        "$userDetails._id",
-                        "$$projectUser.userId",
-                      ],
-                    },
-                  ],
-                },
-                email: {
-                  $arrayElemAt: [
-                    "$userDetails.email",
-                    {
-                      $indexOfArray: [
-                        "$userDetails._id",
-                        "$$projectUser.userId",
-                      ],
-                    },
-                  ],
-                },
-              },
-            },
-          },
-          "creatorDetails.name": 1,
-          "creatorDetails.email": 1,
-          "creatorDetails.role": "owner",
-          "updatedDetails.name": 1,
-          "updatedDetails.email": 1,
-          "updatedDetails.role": 1,
+          users: 1,
+          createdBy: 1,
+          updatedBy: 1,
         },
       },
     ]);
-    console.timeEnd("12345");
+    console.timeEnd("UpdateProject::::");
     // Return the populated project with creator and updated details
     return populatedProject[0];
   } catch (error) {
     console.error("Error updating Project:", error);
+    throw error;
+  }
+};
+
+export const getUserProjectAndTaskDetails = async (userId: string) => {
+  try {
+    const userProjects = await Project.aggregate([
+      {
+        $match: {
+          "users.userId": new mongoose.Types.ObjectId(userId),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "projectCreatedBy",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: "owner",
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectCreatedBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "updatedBy",
+          foreignField: "_id",
+          as: "updatorDetail",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                email: 1,
+                role: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: "$updatorDetail",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $set: {
+          "updatorDetail.role": {
+            $arrayElemAt: [
+              "$users.role",
+              {
+                $indexOfArray: ["$users.userId", "$updatedBy"],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $unwind: {
+          path: "$users",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "users.userId",
+          foreignField: "_id",
+          as: "projectUserDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$projectUserDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          status: { $first: "$status" },
+          users: {
+            $push: {
+              id: "$projectUserDetails._id",
+              name: "$projectUserDetails.name",
+              email: "$projectUserDetails.email",
+              role: "$users.role",
+            },
+          },
+          createdBy: { $first: "$projectCreatedBy" },
+          updatedBy: { $first: "$updatorDetail" },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          status: 1,
+          users: 1,
+          createdBy: 1,
+          updatedBy: 1,
+        },
+      },
+    ]);
+
+    const userTasks = await Task.aggregate([
+      {
+        $match: {
+          users: new mongoose.Types.ObjectId(userId),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "users",
+          foreignField: "_id",
+          as: "taskUsers",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          as: "taskCreatorDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$taskCreatorDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "updatedBy",
+          foreignField: "_id",
+          as: "taskUpdaterDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$taskUpdaterDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          status: 1,
+          createdBy: 1,
+          updatedBy: 1,
+          taskUsers: {
+            _id: 1,
+            name: 1,
+            email: 1,
+          },
+          taskCreatorDetails: {
+            _id: 1,
+            name: 1,
+            email: 1,
+          },
+          taskUpdaterDetails: {
+            _id: 1,
+            name: 1,
+            email: 1,
+          },
+        },
+      },
+    ]);
+
+    return {
+      userProjects,
+      userTasks,
+    };
+  } catch (error) {
+    console.error("Error fetching user details:", error);
     throw error;
   }
 };

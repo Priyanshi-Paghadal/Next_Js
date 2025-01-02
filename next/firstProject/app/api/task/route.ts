@@ -8,25 +8,9 @@ export const POST = async (req: Request): Promise<Response> => {
   try {
     connectDB();
 
-    const {
-      projectId,
-      name,
-      priority,
-      users,
-      dueDate,
-      createdBy,
-    }: TaskPayloadInterface = await req.json();
+    const payload: TaskPayloadInterface = await req.json();
 
-    const taskDetails = {
-      projectId,
-      name,
-      priority,
-      users,
-      dueDate,
-      createdBy,
-    };
-
-    const task = await createTask(taskDetails);
+    const task = await createTask(payload);
 
     return NextResponse.json({ msg: messages.task.created, task });
   } catch (error) {
