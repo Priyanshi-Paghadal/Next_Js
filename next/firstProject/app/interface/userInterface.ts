@@ -8,11 +8,11 @@ export interface NewUserInterface extends Document {
   gender: "Male" | "Female" | "Other"; // Enum type for gender
   birthDate: Date; // Optional birthdate
   age: number; // Optional age
-  // profilePic:{
-  //   filename:string;
-  //   path:string;
-  //   size:number;
-  // };
+  profilePic:{
+    filename:string;
+    path:string;
+    size:number;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,10 +22,10 @@ export interface UserPayLoadInterface {
   password: string;
   mobile: number;
   gender: string;
-  // profilePic:{
-  //   filename:string;
-  //   path:string;
-  //   size:number;
-  // };
+  profilePic:{
+    filename:string;
+    path:string;
+    size:number;
+  };
   birthDate: Date;
 }
