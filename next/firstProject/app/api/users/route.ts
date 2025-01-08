@@ -4,29 +4,25 @@ import { createUser, getUsers } from "@/app/services/userService";
 import { messages } from "@/app/helper/messageHelper";
 import path from "path";
 import fs from "fs";
+import { imageToBase64 } from "@/app/services/userService";
 import { UserPayLoadInterface } from "@/app/interface/userInterface";
-import {  validateUsers } from "@/app/utils/validate";
+import { validateUsers } from "@/app/utils/validate";
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export async function POST(req: NextRequest): Promise<NextResponse | unknown> {
+export async function POST(
+  req: NextRequest): Promise<NextResponse | unknown> {
   try {
     // Connect to the database
     await connectDB();
 
     // First, extract the formData (for handling both JSON fields and file uploads)
     const formData = await req.formData();
+    const profilePic = formData.get("profilePic");
 
     // Extract the user image from formData
-    const profilePic = formData.get("profilePic") as File;
     console.log("profilePic ::: ", profilePic);
 
-    if (!profilePic) {
-      throw Error("No image file uploaded");
+    if (!(profilePic instanceof File)) {
+      throw new Error("No image file uploaded");
     }
 
     const filePath = path.join(
@@ -45,8 +41,22 @@ export async function POST(req: NextRequest): Promise<NextResponse | unknown> {
     const mobile = formData.get("mobile") as string;
     const gender = formData.get("gender") as string;
     const birthDate = formData.get("birthDate");
+    console.log("file name :::::::::::::::::::::::::::::", profilePic.name);
 
-    const data = {name, email, password, mobile, gender, birthDate ,profilePic}
+    const imagePath = `public/uploads/${profilePic.name}`;
+
+    await imageToBase64(imagePath);
+    console.log(":::::::::::::::::::::::", imagePath);
+
+    const data = {
+      name,
+      email,
+      password,
+      mobile: Number(mobile),
+      gender,
+      birthDate: new Date(),
+      profilePic: imagePath,
+    };
 
     validateUsers(data);
 
@@ -55,21 +65,19 @@ export async function POST(req: NextRequest): Promise<NextResponse | unknown> {
       name,
       email,
       password,
-      mobile: mobile as unknown as number,
-      gender: gender as string, // Now gender is correctly typed as 1 | 2 | 3
-      birthDate,
-      profilePic: `@/public/uploads/${profilePic.name}`, // Include image path if image is provided
+      mobile: Number(mobile),
+      gender,
+      birthDate: birthDate as unknown as Date,
+      profilePic: imagePath, // Include image path if image is provided
     };
 
     console.log("UserData :::: ", userData);
-    // console.log("profilePic ::", profilePic.name);
 
     // Call the addUser service to add the user to the database
     const newUser = await createUser(
       userData,
       profilePic as unknown as Express.Multer.File
     );
-    // const newUser = await addUser(userData);
 
     console.log("newUser ::", newUser);
 
@@ -79,7 +87,7 @@ export async function POST(req: NextRequest): Promise<NextResponse | unknown> {
       { status: 201 }
     );
   } catch (error) {
-    console.error("user not added",error);
+    console.error("user not added", error);
     throw Error("user not added");
   }
 }

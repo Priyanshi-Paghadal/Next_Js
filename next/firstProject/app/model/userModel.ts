@@ -29,11 +29,7 @@ const userSchema: Schema<NewUserInterface> = new Schema(
     },
     gender: { type: String, enum: ["Male", "Female", "Other"] }, // Enum for gender
     birthDate: { type: Date },
-    // profilePic: {
-    //   filename: { type: String, required: true },
-    //   path: { type: String, required: true },
-    //   size: { type: Number, required: true },
-    // },
+    profilePic: {type:String    },
     age: { type: Number }, // Age calculation logic will be handled in pre-save hook
   },
   {

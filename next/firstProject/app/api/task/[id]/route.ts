@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { validate } from "@/app/utils/validate";
 import { messages } from "@/app/helper/messageHelper";
 import mongoose from "mongoose";
-// import mongoose from "mongoose";
 
 export const PUT = async (
   req: Request,

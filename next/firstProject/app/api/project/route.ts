@@ -38,22 +38,3 @@ export const GET = async () => {
     );
   }
 };
-
-// export async function GET(req: {url: string | URL; query: { projectId: string; };}): Promise<NextResponse<{ message: string; projects: unknown[] | undefined; }> | undefined>{
-//   try {
-//     await connectDB();
-//     const url = new URL(req.url);
-//     const userId = url.searchParams.get("userId");
-//     console.log("userId",userId);
-//     const projects = await getProjects(userId as string);
-//     return NextResponse.json({ message: "Projects fetched successfully!", projects });
-//   } catch (error: unknown) {
-//     if (error instanceof Error) {
-//       console.error("Error fetching projects:", error.message);
-//       throw Error(error.message || "Error fetching projects");
-//     } else {
-//       console.error("An unknown error occurred");
-//       throw Error("Unknown error");
-//     }
-//   }
-// }

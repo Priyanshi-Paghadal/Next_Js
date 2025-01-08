@@ -4,24 +4,39 @@ import {
   UserPayLoadInterface,
 } from "../interface/userInterface";
 import { messages } from "../helper/messageHelper";
+import { validateUsers } from "../utils/validate";
+import path from "path";
+import fs from "fs";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createUser = async (payload: UserPayLoadInterface, p0: Express.Multer.File): Promise<UserPayLoadInterface> => {
+export async function createUser(
+  data: UserPayLoadInterface,
+  profilePicFile: Express.Multer.File
+): Promise<unknown> {
   try {
-    console.time("CreateUser:::");
+    const { name, email, password, mobile, gender, birthDate } = data;
 
-    console.log(":::::::payload", payload);
+    const userImagePath = `public/uploads/${profilePicFile.name}`;
+    console.log("iuserimage path:::", userImagePath);
+    const img = await imageToBase64(userImagePath);
 
-    const user = await new User(payload).save();
-    console.log("::::createuser", user);
-    console.timeEnd("CreateUser:::");
+    const newUser = new User({
+      name,
+      email,
+      password,
+      mobile,
+      gender,
+      birthDate,
+      profilePic: img,
+    });
+    validateUsers(newUser);
 
-    return user; // Return the newly created user
+    await newUser.save();
+    return newUser;
   } catch (error) {
-    console.log(`Error creating user: ${error}`);
+    console.log("Error creating user: ", error);
     throw error;
   }
-};
+}
 
 export const getUsers = async (): Promise<NewUserInterface[]> => {
   try {
@@ -82,3 +97,34 @@ export const getUserDetails = async (
     throw error;
   }
 };
+
+export async function imageToBase64(imagePath: string): Promise<string> {
+  console.log("Received image path:", imagePath);
+
+  try {
+    // Resolve the absolute path
+    const resolvedPath = path.resolve(imagePath);
+    console.log("Resolved image path:", resolvedPath);
+
+    // Check if the file exists
+    if (!fs.existsSync(resolvedPath)) {
+      throw new Error(`File does not exist at path: ${resolvedPath}`);
+    }
+
+    // Read image as a binary file
+    const imageBuffer = fs.readFileSync(resolvedPath);
+
+    // Convert the binary data to Base64 string
+    const base64Image = imageBuffer.toString("base64");
+
+    // Prepend the MIME type if needed
+    const base64String = `data:image/jpeg;base64,${base64Image}`;
+    console.log("Base64 conversion successful");
+
+    return base64String;
+  } catch (error) {
+    // In case the error is not an instance of Error
+    console.error("base64 not converted", error);
+    throw Error("base64 not converted");
+  }
+}
